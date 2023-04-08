@@ -2,6 +2,21 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plot
 
+capture = cv2.VideoCapture('./imgs/vid1.mp4')
+
+if (capture.isOpened() == False):
+    print('error')
+
+while(capture.isOpened()):
+    ret, frame = capture.read()
+    cv2.imshow('ret', frame)
+    keypressed = cv2.waitKey(30)
+    if keypressed == ord('q'):
+        cv2.imwrite('./imgs/latestCapture.png', frame)
+        break
+
+capture.release()
+
 image = cv2.imread('./imgs/image1.jpg')
 height, width = 560, 280
 
