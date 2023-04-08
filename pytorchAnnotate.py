@@ -18,8 +18,10 @@ dir_list = os.listdir(directory)
 #     print(results.pandas().xyxy[0])
 
 image = cv2.imread('./annotateImgs2/' + dir_list[0])
-height, width, ch = image.shape
-results = model(image, size=640)
+copy = image.copy()
+print(dir_list[0])
+height, width, ch = copy.shape
+results = model(copy, size=640)
 # results.print()
 # results.save()
 cls = results.pandas().xyxy[0]['class']
@@ -34,9 +36,9 @@ string = ''
 
 for i in range(len(cls)):
     x1 = xmin[i] / width
-    x2 = xmin[i] / width
-    y1 = ymin[i] / width
-    y2 = ymin[i] / width
+    x2 = xmax[i] / width
+    y1 = ymin[i] / height
+    y2 = ymax[i] / height
 
     valX1 = round(x1, 6)
     valX2 = round(x2 - x1, 6)
@@ -46,4 +48,9 @@ for i in range(len(cls)):
 
     # print(f'[{cls[i]}] - [{xmin[i]}, {ymin[i]}, {xmax[i]}, {ymax[i]}] - [{conf[i]}]')
     print(f'{cls[i]} {valX1} {valY1} {valX2} {valY2} {valConf}')
+    midX = valX1 + (valX2/2)
+    midY = valY1 + (valX2/2)
+    cv2.circle(copy, (int(midX), int(midY)), 8, (0, 0, 255), -1)
+    cv2.imshow('copy', copy)
+    cv2.waitKey(30)
     # string += f'{cls[i]}'
