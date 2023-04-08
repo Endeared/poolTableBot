@@ -7,7 +7,7 @@ import torch
 from functools import partial
 
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='./weights/bestColab.pt')
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='./weights/2-100i-553e-m.pt')
 
 with mss.mss() as sct:
     monitor = {'top': 0, 'left': 0, 'width': 1920, 'height': 1080}
