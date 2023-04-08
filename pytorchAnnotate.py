@@ -17,40 +17,52 @@ dir_list = os.listdir(directory)
 #     # results.save()
 #     print(results.pandas().xyxy[0])
 
-image = cv2.imread('./annotateImgs2/' + dir_list[0])
-copy = image.copy()
-print(dir_list[0])
-height, width, ch = copy.shape
-results = model(copy, size=640)
-# results.print()
-# results.save()
-cls = results.pandas().xyxy[0]['class']
-print(len(cls))
-xmin = results.pandas().xyxy[0]['xmin']
-ymin = results.pandas().xyxy[0]['ymin']
-xmax = results.pandas().xyxy[0]['xmax']
-ymax = results.pandas().xyxy[0]['ymax']
-conf = results.pandas().xyxy[0]['confidence']
+for i in range(len(dir_list)):
+    image = cv2.imread('./annotateImgs2/' + dir_list[i])
+    copy = image.copy()
+    print(dir_list[i])
+    height, width, ch = copy.shape
+    results = model(copy, size=640)
+    # results.print()
+    # results.save()
+    cls = results.pandas().xyxy[0]['class']
+    xmin = results.pandas().xyxy[0]['xmin']
+    ymin = results.pandas().xyxy[0]['ymin']
+    xmax = results.pandas().xyxy[0]['xmax']
+    ymax = results.pandas().xyxy[0]['ymax']
+    conf = results.pandas().xyxy[0]['confidence']
 
-string = ''
+    string = ''
 
-for i in range(len(cls)):
-    x1 = xmin[i] / width
-    x2 = xmax[i] / width
-    y1 = ymin[i] / height
-    y2 = ymax[i] / height
+    with open(f'./annotateImgs2/randomFrame{i}.txt', 'w') as file:
+        for i in range(len(cls)):
+            x1 = xmin[i] / width
+            x2 = xmax[i] / width
+            y1 = ymin[i] / height
+            y2 = ymax[i] / height
 
-    valX1 = round(x1, 6)
-    valX2 = round(x2 - x1, 6)
-    valY1 = round(y1, 6)
-    valY2 = round(y2 - y1, 6)
-    valConf = round(conf[i], 6)
+            valX1 = round(x1, 6)
+            valX2 = round(x2 - x1, 6)
+            valY1 = round(y1, 6)
+            valY2 = round(y2 - y1, 6)
 
-    # print(f'[{cls[i]}] - [{xmin[i]}, {ymin[i]}, {xmax[i]}, {ymax[i]}] - [{conf[i]}]')
-    print(f'{cls[i]} {valX1} {valY1} {valX2} {valY2} {valConf}')
-    midX = valX1 + (valX2/2)
-    midY = valY1 + (valX2/2)
-    cv2.circle(copy, (int(midX), int(midY)), 8, (0, 0, 255), -1)
-    cv2.imshow('copy', copy)
-    cv2.waitKey(30)
-    # string += f'{cls[i]}'
+            valConf = round(conf[i], 6)
+
+            valHalfX = xmax[i] - xmin[i]
+            valMidX = xmin[i] + valHalfX/2
+            valHalfY = ymax[i] - ymin[i]
+            valMidY = ymin[i] + valHalfY/2
+
+            valHalfXyolo = (x2 - x1)/2
+            valHalfYyolo = (y2 - y1)/2
+            valHalfXR = round(valHalfXyolo, 6)
+            valHalfYR = round(valHalfYyolo, 6)
+
+            print(f'{cls[i]} {valX1} {valY1} {valX2} {valY2} {valConf}')
+            midX = valX1 + (valX2/2)
+            midY = valY1 + (valY2/2)
+            if valConf > 0.80:
+                file.write(f'{cls[i]} {valX1 + valHalfXR} {valY1 + valHalfYR} {valHalfXR * 2} {(valHalfYR * 2)}\n')
+                # cv2.circle(copy, (int(valMidX), int(valMidY)), 8, (0, 0, 255), -1)
+                # cv2.imshow('copy', copy)
+                # cv2.waitKey(0)
