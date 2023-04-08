@@ -14,11 +14,11 @@ def draw_rectangles(ctrs, img):
         h = rot_rect[1][1] # height
         
         box = np.int64(cv2.boxPoints(rot_rect))
-        cv2.drawContours(output,[box],0,(255,100,0),2) # draws box
+        cv2.drawContours(output,[box],0,(0,0,255),2) # draws box
         
     return output
 
-def filter_contours(ctrs, min_s = 90, max_s = 358, alpha = 3.445):  
+def filter_contours(ctrs, min_s = 40, max_s = 358, alpha = 3.445):  
     
     filtered_ctrs = [] # list for filtered contours
     
@@ -42,7 +42,7 @@ def filter_contours(ctrs, min_s = 90, max_s = 358, alpha = 3.445):
         
     return filtered_ctrs # returns filtere contours
 
-def find_ctrs_color(ctrs, input_img):
+def find_contours_color(ctrs, input_img):
 
     K = np.ones((3,3),np.uint8) # filter
     output = input_img.copy() #np.zeros(input_img.shape,np.uint8) # empty img
@@ -122,9 +122,9 @@ upper_bound = np.array([110, 255, 255])
 
 mask = cv2.inRange(hsv, lower_bound, upper_bound)
 mask_others = cv2.bitwise_not(mask)
-mask = cv2.bitwise_and(warped, warped, mask=mask_others)
+maskInvert = cv2.bitwise_and(warped, warped, mask=mask_others)
 
-contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+contours, hierarchy = cv2.findContours(maskInvert, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 detected_objects = draw_rectangles(contours, warped)
 contours_final = filter_contours(contours)
 detected_objects_final = draw_rectangles(contours_final, warped)
@@ -133,8 +133,10 @@ contours_color = find_contours_color(contours_final, warped)
 contours_color = cv2.addWeighted(contours_color, 0.5, warped, 0.5, 0)
 
 
-cv2.imshow("Image", table)
 cv2.imshow('Image2', warped)
-cv2.imshow('Image3', mask)
+cv2.imshow('Image3', maskInvert)
+cv2.imshow('obj', detected_objects)
+cv2.imshow('filtered obj', detected_objects_final),
+cv2.imshow('ball colors', contours_color)
 cv2.waitKey(0)
 cv2.destroyAllWindows
