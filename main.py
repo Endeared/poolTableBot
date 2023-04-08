@@ -2,22 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plot
 
-capture = cv2.VideoCapture('./imgs/vid1.mp4')
-
-if (capture.isOpened() == False):
-    print('error')
-
-while(capture.isOpened()):
-    ret, frame = capture.read()
-    cv2.imshow('ret', frame)
-    keypressed = cv2.waitKey(30)
-    if keypressed == ord('q'):
-        cv2.imwrite('./imgs/latestCapture.png', frame)
-        break
-
-capture.release()
-
-image = cv2.imread('./imgs/image1.jpg')
+# image = cv2.imread('./imgs/latestCapture.png')
 height, width = 560, 280
 
 def draw_rectangles(ctrs, img):
@@ -36,7 +21,7 @@ def draw_rectangles(ctrs, img):
         
     return output
 
-def filter_contours(ctrs, min_s = 40, max_s = 600, alpha = 8):  
+def filter_contours(ctrs, min_s = 80, max_s = 400, alpha = 8):  
     
     filtered_ctrs = [] # list for filtered contours
     
@@ -180,16 +165,16 @@ def draw_table(ctrs,background = create_table(), radius=7, size = -1, img = 0):
         
     return final
 
-coordsImage = {
-    'tl': (164, 107),
-    'tla': [164, 107],
-    'bl': (164, 337),
-    'bla': (164, 337),
-    'tr': (636, 102),
-    'tra': (636, 102),
-    'br': (639, 337),
-    'bra': (639, 337)
-}
+# coordsImage = {
+#     'tl': (164, 107),
+#     'tla': [164, 107],
+#     'bl': (164, 337),
+#     'bla': (164, 337),
+#     'tr': (636, 102),
+#     'tra': (636, 102),
+#     'br': (639, 337),
+#     'bra': (639, 337)
+# }
 
 # coordsDiagram = {
 #     'tl': (0, 0),
@@ -202,6 +187,17 @@ coordsImage = {
 #     'bra': [height, width]
 # }
 
+coordsImage = {
+    'tl': (97, 57),
+    'tla': [97, 57],
+    'bl': (96, 636),
+    'bla': (96, 636),
+    'tr': (1234, 68),
+    'tra': (1234, 68),
+    'br': (1230, 645),
+    'bra': (1230, 645)
+}
+
 coordsDiagram = {
     'tl': (0, 0),
     'tla': [0, 0],
@@ -213,55 +209,66 @@ coordsDiagram = {
     'bra': [height, width]
 }
 
-table = image.copy()
-cv2.circle(table, coordsImage['tl'], 8, (0, 0, 255), -1) # top left pocket
-cv2.circle(table, coordsImage['bl'], 8, (0, 0, 255), -1) # bot left pocket
-cv2.circle(table, coordsImage['tr'], 8, (0, 0, 255), -1) # top right pocket
-cv2.circle(table, coordsImage['br'], 8, (0, 0, 255), -1) # bot right pocket
+capture = cv2.VideoCapture('./imgs/vid1.mp4')
 
-newImage = np.zeros((width, height, 3), dtype=np.uint8)
-finalImage = newImage.copy()
-cv2.circle(finalImage, coordsDiagram['tl'], 8, (0, 0, 255), -1) # top left pocket
-cv2.circle(finalImage, coordsDiagram['bl'], 8, (0, 0, 255), -1) # bot left pocket
-cv2.circle(finalImage, coordsDiagram['br'], 8, (0, 0, 255), -1) # bot right pocket
-cv2.circle(finalImage, coordsDiagram['tr'], 8, (0, 0, 255), -1) #  top right pocket
+if (capture.isOpened() == False):
+    print('error')
 
-firstPoints = np.float32([coordsImage['tla'], coordsImage['bla'], coordsImage['tra'], coordsImage['bra']])
-secondPoints = np.float32([[0,height],[width,height],[0,0],[width,0]])
-matrix = cv2.getPerspectiveTransform(firstPoints, secondPoints)
-warped = cv2.warpPerspective(image, matrix, (width, height))
+while(capture.isOpened()):
+    ret, frame = capture.read()
+    cv2.imshow('ret', frame)
+    keypressed = cv2.waitKey(30)
+    if keypressed == ord('q'):
+        cv2.imwrite('./imgs/latestCapture.png', frame)
+        break
 
 
-hsv = cv2.cvtColor(warped, cv2.COLOR_BGR2HSV)
-kernel = np.ones((5,5), np.uint8)
+    table = frame.copy()
+    cv2.circle(table, coordsImage['tl'], 8, (0, 0, 255), -1) # top left pocket
+    cv2.circle(table, coordsImage['bl'], 8, (0, 0, 255), -1) # bot left pocket
+    cv2.circle(table, coordsImage['tr'], 8, (0, 0, 255), -1) # top right pocket
+    cv2.circle(table, coordsImage['br'], 8, (0, 0, 255), -1) # bot right pocket
 
-lower_bound = np.array([100, 230, 230])
-upper_bound = np.array([110, 255, 255])
+    newImage = np.zeros((width, height, 3), dtype=np.uint8)
+    finalImage = newImage.copy()
+    cv2.circle(finalImage, coordsDiagram['tl'], 8, (0, 0, 255), -1) # top left pocket
+    cv2.circle(finalImage, coordsDiagram['bl'], 8, (0, 0, 255), -1) # bot left pocket
+    cv2.circle(finalImage, coordsDiagram['br'], 8, (0, 0, 255), -1) # bot right pocket
+    cv2.circle(finalImage, coordsDiagram['tr'], 8, (0, 0, 255), -1) #  top right pocket
 
-mask = cv2.inRange(hsv, lower_bound, upper_bound)
-mask_closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-_,mask_invert = cv2.threshold(mask_closing, 5, 255, cv2.THRESH_BINARY_INV)
-masked = cv2.bitwise_and(warped, warped, mask=mask_invert)
-# mask_others = cv2.bitwise_not(mask)
-# maskInvert = cv2.bitwise_and(warped, warped, mask=mask_others)
+    firstPoints = np.float32([coordsImage['tla'], coordsImage['bla'], coordsImage['tra'], coordsImage['bra']])
+    secondPoints = np.float32([[0,height],[width,height],[0,0],[width,0]])
+    matrix = cv2.getPerspectiveTransform(firstPoints, secondPoints)
+    warped = cv2.warpPerspective(frame, matrix, (width, height))
 
-contours, hierarchy = cv2.findContours(mask_invert, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-detected_objects = draw_rectangles(contours, warped)
-contours_final = filter_contours(contours)
-detected_objects_final = draw_rectangles(contours_final, warped)
 
-contours_color = find_contours_color(contours_final, warped)
-contours_color = cv2.addWeighted(contours_color, 0.5, warped, 0.5, 0)
+    hsv = cv2.cvtColor(warped, cv2.COLOR_BGR2HSV)
+    kernel = np.ones((5,5), np.uint8)
 
-diagram = draw_table(contours_final, img=warped)
-diagram = draw_holes(diagram)
+    lower_bound = np.array([100, 230, 230])
+    upper_bound = np.array([110, 255, 255])
 
-cv2.imshow('table', table)
-cv2.imshow('test', finalImage)
-cv2.imshow('obj', detected_objects)
-cv2.imshow('filtered obj', detected_objects_final)
-cv2.imshow('ball colors', contours_color)
-cv2.imshow('original', image)
-cv2.imshow('diagram', diagram)
-cv2.waitKey(0)
+    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+    mask_closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    _,mask_invert = cv2.threshold(mask_closing, 5, 255, cv2.THRESH_BINARY_INV)
+    masked = cv2.bitwise_and(warped, warped, mask=mask_invert)
+    # mask_others = cv2.bitwise_not(mask)
+    # maskInvert = cv2.bitwise_and(warped, warped, mask=mask_others)
+
+    contours, hierarchy = cv2.findContours(mask_invert, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    detected_objects = draw_rectangles(contours, warped)
+    contours_final = filter_contours(contours)
+    detected_objects_final = draw_rectangles(contours_final, warped)
+
+    contours_color = find_contours_color(contours_final, warped)
+    contours_color = cv2.addWeighted(contours_color, 0.5, warped, 0.5, 0)
+
+    diagram = draw_table(contours_final, img=warped)
+    diagram = draw_holes(diagram)
+
+    cv2.imshow('filtered obj', detected_objects_final)
+    cv2.imshow('original', frame)
+    cv2.imshow('diagram', diagram)
+
+capture.release()
 cv2.destroyAllWindows
