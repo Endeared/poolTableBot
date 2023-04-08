@@ -42,7 +42,8 @@ for i in range(len(cls)):
     valX2 = round(x2 - x1, 6)
     valY1 = round(y1, 6)
     valY2 = round(y2 - y1, 6)
+    valConf = round(conf[i], 6)
 
     # print(f'[{cls[i]}] - [{xmin[i]}, {ymin[i]}, {xmax[i]}, {ymax[i]}] - [{conf[i]}]')
-    print(f'{cls[i]} {x1} {y1} {x2} {y2} {conf[i]}')
+    print(f'{cls[i]} {valX1} {valY1} {valX2} {valY2} {valConf}')
     # string += f'{cls[i]}'
