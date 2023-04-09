@@ -19,8 +19,9 @@ dir_list = os.listdir(directory)
 
 for i in range(len(dir_list)):
     image = cv2.imread('./annotateImgs2/' + dir_list[i])
+    name = (dir_list[i])[:-4]
     copy = image.copy()
-    print(dir_list[i])
+    print(name)
     height, width, ch = copy.shape
     results = model(copy, size=640)
     # results.print()
@@ -34,7 +35,7 @@ for i in range(len(dir_list)):
 
     string = ''
 
-    with open(f'./annotateImgs2/randomFrame{i}.txt', 'w') as file:
+    with open(f'./annotateImgs2/{name}.txt', 'w') as file:
         for i in range(len(cls)):
             x1 = xmin[i] / width
             x2 = xmax[i] / width
