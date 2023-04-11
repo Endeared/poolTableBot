@@ -7,7 +7,8 @@ import torch
 from functools import partial
 from pprint import pprint
 
-height, width = 720, 1280
+scale = 2
+height, width = (720 / scale), (1280 / scale)
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='./weights/3-937i-692e-m.pt')
 
 # with mss.mss() as sct:
@@ -21,31 +22,27 @@ def createTable():
 
     return table
 
-def showObjects(objects, frame, background=createTable()):
+def showObjects(objects, frame, scale, background=createTable()):
     
     thisFilter = np.ones((3,3), np.uint8)
     diagram = background.copy()
 
     for object in objects:
 
-        region = 12
-        minX = int(object[0] - region)
-        maxX = int(object[0] + region)
-        minY = int(object[1] - region)
-        maxY = int(object[1] + region)
+        region = 12 / scale
+        minX = int((object[0] - region) / scale)
+        maxX = int((object[0] + region) / scale)
+        minY = int((object[1] - region) / scale)
+        maxY = int((object[1] + region) / scale)
+
+        scaledX = int(object[0] / scale)
+        scaledY = int(object[1] / scale)
 
         crop = frame[minY:maxY, minX:maxX]
         mean = cv2.mean(crop)
 
-        diagram = cv2.circle(diagram, (int(object[0]), int(object[1])), 12, mean, -1)
-        diagram = cv2.circle(diagram, (int(object[0]), int(object[1])), 12, 0, 0)
-
-        scalePercent = 50
-        newWidth = int(diagram.shape[1] * scalePercent / 100)
-        newHeight = int(diagram.shape[0] * scalePercent / 100)
-        dimensions = (newWidth, newHeight)
-
-        # diagram = cv2.resize(diagram, dimensions)
+        diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), mean, -1)
+        diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), 0, 0)
 
     return diagram
 
@@ -88,6 +85,6 @@ while (capture.isOpened()):
         cv2.imshow('view', frame)
 
 
-    diagram = showObjects(coords, frame)
+    diagram = showObjects(coords, frame, scale)
     cv2.imshow('diagram', diagram)
 cv2.destroyAllWindows
