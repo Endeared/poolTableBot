@@ -8,7 +8,7 @@ from functools import partial
 from pprint import pprint
 
 scale = 2
-height, width = (720 / scale), (1280 / scale)
+height, width = int(720 / scale), int(1280 / scale)
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='./weights/3-937i-692e-m.pt')
 
 # with mss.mss() as sct:
@@ -26,23 +26,58 @@ def showObjects(objects, frame, scale, background=createTable()):
     
     thisFilter = np.ones((3,3), np.uint8)
     diagram = background.copy()
+    highestMean = 0
+    highestObj = {}
+    lowestMean = 1000
+    lowestObj = {}
 
     for object in objects:
 
-        region = 12 / scale
-        minX = int((object[0] - region) / scale)
-        maxX = int((object[0] + region) / scale)
-        minY = int((object[1] - region) / scale)
-        maxY = int((object[1] + region) / scale)
+        region = 9
+        minX = int((object[0] / scale) - region)
+        maxX = int((object[0] / scale) + region)
+        minY = int((object[1] / scale) - region)
+        maxY = int((object[1] / scale) + region)
+
+        frameX1 = int(object[0] - region)
+        frameX2 = int(object[0] + region)
+        frameY1 = int(object[1] - region)
+        frameY2 = int(object[1] + region)
 
         scaledX = int(object[0] / scale)
         scaledY = int(object[1] / scale)
 
-        crop = frame[minY:maxY, minX:maxX]
+        crop = frame[frameY1:frameY2, frameX1:frameX2]
         mean = cv2.mean(crop)
+        total = 0
+        newList = list(mean)
+        for value in newList:
+            total += value
+
+        if total > highestMean:
+            highestMean = total
+            highestObj = {
+                'object': object,
+                'centerX': scaledX,
+                'centerY': scaledY
+            }
+        
+        if total < lowestMean:
+            lowestMean = total
+            lowestObj = {
+                'object': object,
+                'centerX': scaledX,
+                'centerY': scaledY
+            }
 
         diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), mean, -1)
         diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), 0, 0)
+
+    diagram = cv2.circle(diagram, (highestObj['centerX'], highestObj['centerY']), int(16 / scale), (255, 255, 255), -1)
+    diagram = cv2.circle(diagram, (highestObj['centerX'], highestObj['centerY']), int(16 / scale), 0, 0)
+
+    diagram = cv2.circle(diagram, (lowestObj['centerX'], lowestObj['centerY']), int(16 / scale), 0, -1)
+    diagram = cv2.circle(diagram, (lowestObj['centerX'], lowestObj['centerY']), int(16 / scale), 0, 0)
 
     return diagram
 
@@ -80,7 +115,7 @@ while (capture.isOpened()):
         coords.append([middleX, middleY])
 
 
-        # cv2.circle(frame, center, 12, (0, 255, 0), -1)
+        # cv2.circle(frame, center, 18, (0, 255, 0), -1)
         # cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
         cv2.imshow('view', frame)
 
