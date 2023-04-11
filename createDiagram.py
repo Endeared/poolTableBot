@@ -7,7 +7,7 @@ import torch
 from functools import partial
 from pprint import pprint
 
-height, width = 500, 1000
+height, width = 720, 1280
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='./weights/3-937i-692e-m.pt')
 
 # with mss.mss() as sct:
@@ -21,9 +21,33 @@ def createTable():
 
     return table
 
-def showObjects(objects, background=createTable())
+def showObjects(objects, frame, background=createTable()):
     
-    
+    thisFilter = np.ones((3,3), np.uint8)
+    diagram = background.copy()
+
+    for object in objects:
+
+        region = 12
+        minX = int(object[0] - region)
+        maxX = int(object[0] + region)
+        minY = int(object[1] - region)
+        maxY = int(object[1] + region)
+
+        crop = frame[minY:maxY, minX:maxX]
+        mean = cv2.mean(crop)
+
+        diagram = cv2.circle(diagram, (int(object[0]), int(object[1])), 12, mean, -1)
+        diagram = cv2.circle(diagram, (int(object[0]), int(object[1])), 12, 0, 0)
+
+        scalePercent = 50
+        newWidth = int(diagram.shape[1] * scalePercent / 100)
+        newHeight = int(diagram.shape[0] * scalePercent / 100)
+        dimensions = (newWidth, newHeight)
+
+        # diagram = cv2.resize(diagram, dimensions)
+
+    return diagram
 
 capture = cv2.VideoCapture('./imgs/vid1.mp4')
 
@@ -41,6 +65,8 @@ while (capture.isOpened()):
 
     results = detections.pandas().xyxy[0].to_dict()
 
+    coords = []
+
     for i in range(len(results['xmin'])):
         x1 = int(results['xmin'][i])
         x2 = int(results['xmax'][i])
@@ -54,25 +80,14 @@ while (capture.isOpened()):
 
         center = (int(middleX), int(middleY))
 
-        cv2.circle(frame, center, 12, (0, 255, 0), -1)
+        coords.append([middleX, middleY])
+
+
+        # cv2.circle(frame, center, 12, (0, 255, 0), -1)
         # cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-        cv2.imshow('diagram', frame)
+        cv2.imshow('view', frame)
 
-    # if len(rl) > 0:
-    #     if rl[0][4] > .05:
-    #         print('found')
-    #         if rl[0][5] == 0:
-    #             x = int(rl[0][2])
-    #             y = int(rl[0][3])
-    #             width = int(rl[0][2] - rl[0][0])
-    #             height = int(rl[0][3] - rl[0][1])
 
-    #             xpos = int(.10 * ((x - (width/2)) - pyautogui.position()[0]))
-    #             ypos = int(.10 * ((y - (height/2)) - pyautogui.position()[1]))
-    #             extra = [xpos, ypos]
-
-    # cv2.imshow('s', np.squeeze(results.render()))
-    # cv2.waitKey(1)
-    # if keyboard.is_pressed('q'):
-    #     break
+    diagram = showObjects(coords, frame)
+    cv2.imshow('diagram', diagram)
 cv2.destroyAllWindows
