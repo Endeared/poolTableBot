@@ -70,7 +70,7 @@ def showObjects(objects, frame, scale, background=createTable()):
                 'centerY': scaledY
             }
 
-        diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), mean, -1)
+        diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), (50, 50, 200), -1)
         diagram = cv2.circle(diagram, (scaledX, scaledY), int(16 / scale), 0, 0)
 
     diagram = cv2.circle(diagram, (highestObj['centerX'], highestObj['centerY']), int(16 / scale), (255, 255, 255), -1)
